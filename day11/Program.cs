@@ -16,7 +16,6 @@ namespace day11
                 
             }
             Console.WriteLine("Done");
-            Console.ReadLine();
         }
     }
 }

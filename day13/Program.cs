@@ -16,7 +16,6 @@ namespace day13
                 
             }
             Console.WriteLine("Done");
-            Console.ReadLine();
         }
     }
 }
