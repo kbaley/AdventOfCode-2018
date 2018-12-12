@@ -9,7 +9,7 @@ namespace day12
     {
         static void Main(string[] args)
         {
-            const string INITIAL_STATE = "#.##.##.##.##.......###..####..#....#...#.##...##.#.####...#..##..###...##.#..#.##.#.#.#.#..####..#";
+            const string INITIAL_STATE = "#..#.#..##......###...###";
             const long NUM_GENERATIONS = 20;
             var state = StateToIntArray(INITIAL_STATE);
             var inputs = File.ReadAllLines("./input.txt");
@@ -24,7 +24,7 @@ namespace day12
             var newState = "";
             for ( long i = 0; i < NUM_GENERATIONS; i++) {
                 newState = new string(state.Select(s => rules[s]).Select(c => c ? '#' : '.').ToArray());
-                // System.Console.WriteLine(newState);
+                System.Console.WriteLine(newState);
                 state = StateToIntArray(newState);
             }
             
