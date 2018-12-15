@@ -29,54 +29,40 @@ namespace day15
                 }    
             }
             var round = 0;
-            DumpIt(grid, pieces);
             while(pieces.Any(p => p.type == 'G') && pieces.Any(p => p.type == 'E')) {
                 var sortedPieces = pieces.OrderBy(p => p.SortFactor);
-                var endedEarly = false;
                 foreach (var piece in sortedPieces)
                 {
                     Log("Start turn: " + piece + " at " + DateTime.Now.ToLongTimeString());
                     if (piece.IsAlive) {
-                        if (!pieces.Any(p => p.type == piece.Enemy && p.IsAlive)) endedEarly = true;
-                        var enemiesInRange = piece.AdjacentEnemies(pieces);
-                        if (enemiesInRange.Any()) {
-                            var attackedPiece = piece.Attack(enemiesInRange);
-                            if (!attackedPiece.IsAlive) grid[attackedPiece.location.X, attackedPiece.location.Y] = '.';
-                            if (piece.location == new Point(21,9)) {
-                                // System.Console.WriteLine("Attacked: " + attackedPiece);
-                            }
+                        var targets = pieces.Where(p => p.type == piece.Enemy && p.IsAlive);
+                        if (targets.Count() == 0) {
+                            System.Console.WriteLine(round * pieces.Sum(p => p.hp));
+                            return;
+                        }
 
-                            Log("Attacked: " + attackedPiece);
-                        } else {
+                        // If no targets adjacent, move first
+                        if (!piece.location.Adjacent().Any( p => targets.Select(t => t.location).Contains(p))) {
                             piece.Move(pieces, grid);
-                            enemiesInRange = piece.AdjacentEnemies(pieces);
-                            if (enemiesInRange.Any()) {
-                                var attackedPiece = piece.Attack(enemiesInRange);
-                                if (!attackedPiece.IsAlive) grid[attackedPiece.location.X, attackedPiece.location.Y] = '.';
-                                Log("Attacked: " + attackedPiece);
-                            } 
+                        }
+                        var adjacentSquares = piece.location.Adjacent();
+                        var enemyToAttack = targets
+                            .Where(t => t.IsAlive && adjacentSquares.Contains(t.location))
+                            .OrderBy(t => t.hp)
+                            .ThenBy(t => t.SortFactor)
+                            .FirstOrDefault();
+                        
+                        if (enemyToAttack != null) {
+                            // System.Console.WriteLine("Attacking: " + enemyToAttack);
+                            enemyToAttack.hp -= 3;
+                            if (!enemyToAttack.IsAlive) grid[enemyToAttack.location.X, enemyToAttack.location.Y] = '.';
                         }
                     }
 
                 }
                 pieces.RemoveAll(p => p.hp <= 0);
-                if (!endedEarly) round++;
-                System.Console.WriteLine(round * pieces.Sum(p => p.hp));
-                // DumpIt(grid, pieces);
-                // break;
-                if (round == 18 || round == 19) {
-                    DumpIt(grid, pieces);
-                }
-
-                if (round == 19) {
-                    break;
-                }
+                round++;
             }
-            foreach (var item in pieces)
-            {
-                // System.Console.WriteLine(item);
-            }
-            // DumpIt(grid, pieces);
             System.Console.WriteLine(round);
             System.Console.WriteLine(round * pieces.Sum(p => p.hp));
             Console.WriteLine("Done");
@@ -114,15 +100,6 @@ namespace day15
             location = p;
             hp = h;
             type = t;    
-        }
-
-        internal Piece Attack(IEnumerable<Piece> enemiesInRange)
-        {
-            if (enemiesInRange.Count() == 0) return null;
-            var enemyToAttack = enemiesInRange.Where(e => e.IsAlive).OrderBy(e => e.SortFactor).First();
-            enemyToAttack.hp -= 3;
-
-            return enemyToAttack;
         }
 
         internal void Move(List<Piece> pieces, char[,] grid)
@@ -183,14 +160,11 @@ namespace day15
             var previousVisited = 0;
             var visited = new List<Point>{start};
             var newPoints = new HashSet<Point>{start};
-            // System.Console.WriteLine("Start at: " + start);
             while (previousVisited < visited.Count && !visited.Any(p => grid[p.X, p.Y]== Enemy)) {
                 previousVisited = visited.Count;
                 var nextPoints = new HashSet<Point>();
                 foreach (var item in newPoints)
                 {
-                    // System.Console.WriteLine(item);
-                    // Adjacent points that have not been visited and are empty or have an enemy
                     var adjacents = item.Adjacent().Where(a => !visited.Contains(a) && (grid[a.X, a.Y] == '.' || grid[a.X, a.Y] == Enemy));
                     nextPoints.UnionWith(adjacents);
                 }
@@ -198,7 +172,6 @@ namespace day15
                 newPoints = nextPoints;
                 i++;
             }
-            // System.Console.WriteLine("Num rounds: " + i);
             if (visited.Any(p => grid[p.X, p.Y] == Enemy)) {
                 return i - 1;
             }
@@ -226,13 +199,6 @@ namespace day15
     }
 
     public static class Extensions {
-        public static IEnumerable<Piece> AdjacentEnemies(this Piece creature, List<Piece> pieces) {
-            var enemy = 'G';
-            if (creature.type == 'G') enemy = 'E';
-            var enemiesInRange = pieces.Where(p => p.IsAlive && p.type == enemy && creature.location.Adjacent().Any(a => a == p.location));
-            return enemiesInRange;
-        }
-
         public static List<Point> Adjacent(this Point p) {
             var points = new List<Point>();
             points.Add(new Point(p.X, p.Y-1));
@@ -240,10 +206,6 @@ namespace day15
             points.Add(new Point(p.X+1, p.Y));
             points.Add(new Point(p.X, p.Y+1));
             return points;
-        }
-
-        public static int Distance(this Point p, Point p2) {
-            return Math.Abs(p2.X - p.X) + Math.Abs(p2.Y - p.Y);
         }
     }
 }
