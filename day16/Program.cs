@@ -20,38 +20,38 @@ namespace day16
                     inputs.Add(new Input(lines));
             }
 
-            Func<Input, int> addr = (Input input) => { return input.RegA + input.RegB; };
-            Func<Input, int> addi = (Input input) => { return input.RegA + input.ValB; };
-            Func<Input, int> mulr = (Input input) => { return input.RegA * input.RegB; };
-            Func<Input, int> muli = (Input input) => { return input.RegA * input.ValB; };
-            Func<Input, int> banr = (Input input) => { return input.RegA & input.RegB; };
-            Func<Input, int> bani = (Input input) => { return input.RegA & input.ValB; };
-            Func<Input, int> borr = (Input input) => { return input.RegA | input.RegB; };
-            Func<Input, int> bori = (Input input) => { return input.RegA | input.ValB; };
-            Func<Input, int> setr = (Input input) => { return input.RegA; };
-            Func<Input, int> seti = (Input input) => { return input.ValA; };
-            Func<Input, int> gtir = (Input input) => { return input.ValA > input.RegB ? 1 : 0; };
-            Func<Input, int> gtri = (Input input) => { return input.RegA > input.ValB ? 1 : 0; };
-            Func<Input, int> gtrr = (Input input) => { return input.RegA > input.RegB ? 1 : 0; };
-            Func<Input, int> eqir = (Input input) => { return input.ValA == input.RegB ? 1 : 0; };
-            Func<Input, int> eqri = (Input input) => { return input.RegA == input.ValB ? 1 : 0; };
-            Func<Input, int> eqrr = (Input input) => { return input.RegA == input.RegB ? 1 : 0; };
-
-            var operations = new List<Func<Input, int>>();
-            operations.AddRange(new[] {addr, addi, mulr, muli, banr, bani, borr, bori, setr, seti, gtir, gtri, gtrr, eqir, eqri, eqrr});
+            var operations = new List<Func<Input, int>> {
+            (Input input) => { return input.RegA + input.RegB; },
+            (Input input) => { return input.RegA + input.ValB; },
+            (Input input) => { return input.RegA * input.RegB; },
+            (Input input) => { return input.RegA * input.ValB; },
+            (Input input) => { return input.RegA & input.RegB; },
+            (Input input) => { return input.RegA & input.ValB; },
+            (Input input) => { return input.RegA | input.RegB; },
+            (Input input) => { return input.RegA | input.ValB; },
+            (Input input) => { return input.RegA; },
+            (Input input) => { return input.ValA; },
+            (Input input) => { return input.ValA > input.RegB ? 1 : 0; },
+            (Input input) => { return input.RegA > input.ValB ? 1 : 0; },
+            (Input input) => { return input.RegA > input.RegB ? 1 : 0; },
+            (Input input) => { return input.ValA == input.RegB ? 1 : 0; },
+            (Input input) => { return input.RegA == input.ValB ? 1 : 0; },
+            (Input input) => { return input.RegA == input.RegB ? 1 : 0; }
+            };
 
             var result = 0;
 
             // PART ONE
-            // foreach (var item in inputs)
-            // {
-            //     if (operations.Count(o => item.Apply(o).SequenceEqual(item.After)) >= 3) {
-            //         result++;
-            //     }
-            // }
-            // System.Console.WriteLine("PART ONE: " + result);
+            foreach (var item in inputs)
+            {
+                if (operations.Count(o => item.Apply(o).SequenceEqual(item.After)) >= 3) {
+                    result++;
+                }
+            }
+            System.Console.WriteLine("PART ONE: " + result);
 
             // PART TWO
+            // Process of elimination; all opcodes could be all operations
             var opcodes = new Dictionary<int, List<Func<Input, int>>>();
             for(var n = 0; n < 16; n++) {
                 opcodes.Add(n, new List<Func<Input, int>>());
@@ -61,6 +61,7 @@ namespace day16
                 }
             }
 
+            // Start eliminating any that don't produce the desired result
             foreach (var item in inputs)
             {
                 var opcode = item.Instructions[0];
@@ -72,7 +73,8 @@ namespace day16
                 }                
             }
 
-            // Still not done...
+            // Still not done. Build a list of final codes starting with ones we know for sure
+            // and eliminating them from the running until every opcode has an assignment
             var finalOpcodes = new List<(int opcode, Func<Input, int> op)>();
             while (finalOpcodes.Count < 16) {
 
@@ -84,6 +86,8 @@ namespace day16
                     opcodes.Values.ToList().ForEach(o => o.Remove(op));
                 }
             }
+
+            // Now run the program
             var program = File.ReadAllLines("./input2.txt");
             var start = new[] { 0,0,0,0};
             var finalInput = new Input {
