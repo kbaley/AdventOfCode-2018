@@ -41,14 +41,62 @@ namespace day16
             operations.AddRange(new[] {addr, addi, mulr, muli, banr, bani, borr, bori, setr, seti, gtir, gtri, gtrr, eqir, eqri, eqrr});
 
             var result = 0;
-            foreach (var item in inputs)
-            {
-                if (operations.Count(o => item.Apply(o).SequenceEqual(item.After)) >= 3) {
-                    result++;
+
+            // PART ONE
+            // foreach (var item in inputs)
+            // {
+            //     if (operations.Count(o => item.Apply(o).SequenceEqual(item.After)) >= 3) {
+            //         result++;
+            //     }
+            // }
+            // System.Console.WriteLine("PART ONE: " + result);
+
+            // PART TWO
+            var opcodes = new Dictionary<int, List<Func<Input, int>>>();
+            for(var n = 0; n < 16; n++) {
+                opcodes.Add(n, new List<Func<Input, int>>());
+                foreach (var op in operations)
+                {
+                    opcodes[n].Add(op);
                 }
             }
 
-            System.Console.WriteLine("PART ONE: " + result);
+            foreach (var item in inputs)
+            {
+                var opcode = item.Instructions[0];
+                foreach (var op in operations)
+                {
+                    if (opcodes[opcode].Contains(op) && !item.Apply(op).SequenceEqual(item.After)) {
+                        opcodes[opcode].Remove(op);
+                    }
+                }                
+            }
+
+            // Still not done...
+            var finalOpcodes = new List<(int opcode, Func<Input, int> op)>();
+            while (finalOpcodes.Count < 16) {
+
+                var fixedOpcodes = opcodes.Where(o => o.Value.Count == 1);
+                foreach (var item in fixedOpcodes)
+                {
+                    var op = item.Value.ElementAt(0);
+                    finalOpcodes.Add((item.Key, op));
+                    opcodes.Values.ToList().ForEach(o => o.Remove(op));
+                }
+            }
+            var program = File.ReadAllLines("./input2.txt");
+            var start = new[] { 0,0,0,0};
+            var finalInput = new Input {
+                Before = start
+            };
+            foreach (var item in program)
+            {
+                finalInput.Instructions = item.Split(' ').Select(x => int.Parse(x)).ToArray();
+                finalInput.Before = finalInput.Apply(finalOpcodes.Single(o => o.opcode == finalInput.Instructions[0]).op);
+            }
+
+            System.Console.WriteLine("PART TWO: " + finalInput.Before[0]);
+
             Console.WriteLine("Done");
         }
     }
@@ -67,6 +115,7 @@ namespace day16
         public int[] Instructions { get; set; }
         public int[] After { get; set; }
 
+        public Input() { }
         public Input(IEnumerable<string> data)
         {
             Before = data.ElementAt(0).Replace("Before: [", "").Replace("]", "").Split(", ").Select(x => int.Parse(x)).ToArray();
