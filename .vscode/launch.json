@@ -6,13 +6,13 @@
    "configurations": [
 
        {
-           "name": "day14",
+           "name": "day16",
            "type": "coreclr",
            "request": "launch",
            "preLaunchTask": "build",
-           "program": "${workspaceFolder}/day14/bin/Debug/netcoreapp2.1/day14.dll",
+           "program": "${workspaceFolder}/day16/bin/Debug/netcoreapp2.1/day16.dll",
            "args": [],
-           "cwd": "${workspaceFolder}/day14",
+           "cwd": "${workspaceFolder}/day16",
            "stopAtEntry": false,
            "console": "internalConsole"
        },
