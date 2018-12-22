@@ -8,6 +8,10 @@ namespace day20
 {
     class Program
     {
+        private static int numRooms = 0;
+        private static int iteration = 0;
+        private const int THRESHOLD = 10;
+        private List<string> paths = new List<string>();
         static void Main(string[] args)
         {
             var inputs = File.ReadAllLines("./input.txt");
@@ -15,6 +19,7 @@ namespace day20
 
             var length = GetLength(input).Max();
             System.Console.WriteLine("PART ONE:::" + length);
+            System.Console.WriteLine("PART TWO:::" + numRooms);
 
             Console.WriteLine("Done");
         }
@@ -37,6 +42,7 @@ namespace day20
             var lengths = new List<int>();
 
             var pos = 0;
+            iteration++;
             var s = input.Substring(pos + 1, input.Length - pos - 2);
             var length = 0;
             while (pos < s.Length) {
@@ -47,6 +53,9 @@ namespace day20
                     case 'W':
                     case 'S':
                         length++;
+                        if (iteration == 1 && pos >= THRESHOLD) {
+                            numRooms++;
+                        }
                         break;
                     case '|':
                         lengths.Add(length);
@@ -55,6 +64,20 @@ namespace day20
                     case '(':
                         var section = GetSection(s, pos);
                         var childLengths = GetLength(section);
+                        if (childLengths.All(c => c > 0)) {
+                            var max = childLengths.Max();
+                            var maxSkipped = false;
+                            foreach (var item in childLengths)
+                            {
+                                if (item == max && !maxSkipped) {
+                                    maxSkipped = true;
+                                } else {
+                                    if (length + item >= THRESHOLD) {
+                                        numRooms += (length + item - THRESHOLD);
+                                    }   
+                                }
+                            }
+                        }
                         length += childLengths.Min() == 0 ? 0 : childLengths.Max();
                         pos += section.Length - 1;
                         break;
@@ -67,6 +90,7 @@ namespace day20
                 pos++;
             }
             lengths.Add(length);
+            iteration--;
             return lengths;
         }
     }
