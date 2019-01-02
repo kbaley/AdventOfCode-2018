@@ -47,6 +47,7 @@ namespace day21
             var visited = new HashSet<int>();
             while (true)
             {
+                // Skip a bit, brother
                 if (ipVal == 18)
                 {
                     work.Before[1] = work.Before[2] / 256;
