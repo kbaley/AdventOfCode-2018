@@ -43,35 +43,38 @@ namespace day21
                 var values = input.Substring(5).Split(' ').Select(x => int.Parse(x)).ToArray();
                 instructions.Add((op, values));
             }
-            var i = 0;
             work.Before = registers;
-            var it = 0;
+            var visited = new HashSet<int>();
             while (true)
             {
-                it++;
-                var iteration = 0; ;
-                work.Before[0] = i++;
-                while (true && iteration++ < 100000)
+                if (ipVal == 18)
                 {
-                    var instruction = instructions.ElementAt((int)ipVal);
-                    work.Before[IP_REG] = ipVal;
-                    work.Instructions = instruction.values;
-                    // work.Before = work.Apply(operations[instruction.operation]);
-                    work.Before = work.DoOperation(ipVal); 
-                    System.Console.WriteLine("Iteration: " + it + " :: " + string.Join(' ', work.Before) + "  : " + ipVal + "  : " + instruction.operation + " -- " + string.Join(',', instruction.values) + " || " + i);
-                    ipVal = work.Before[IP_REG] + 1;
-
-                    if (ipVal >= instructions.Count)
-                    {
-                        System.Console.WriteLine(work.Before[0]);
+                    work.Before[1] = work.Before[2] / 256;
+                    work.Before[5] = 1;
+                    ipVal = 26;
+                    work.Before[IP_REG] = 26;
+                }
+                var instruction = instructions.ElementAt((int)ipVal);
+                work.Before[IP_REG] = ipVal;
+                work.Instructions = instruction.values;
+                if (ipVal == 28) {
+                    if (!visited.Add(work.Before[3])) {
                         break;
                     }
-                    // if (ipVal == 28)
-                        // System.Console.WriteLine("Iteration: " + it + " :: " + string.Join(' ', work.Before) + "  : " + ipVal + "  : " + instruction.operation + " -- " + string.Join(',', instruction.values) + " || " + i);
+                }
 
+                work.Before = work.Apply(operations[instruction.operation]);
+                ipVal = work.Before[IP_REG] + 1;
+
+                if (ipVal >= instructions.Count)
+                {
+                    System.Console.WriteLine("Broke");
+                    break;
                 }
             }
 
+            System.Console.WriteLine("PART ONE: " + visited.First());
+            System.Console.WriteLine("PART TWO: " + visited.Last());
             Console.WriteLine("Done");
         }
     }
@@ -99,108 +102,6 @@ namespace day21
         {
             return "Before: [" + string.Join(", ", Before) + "]\n" + string.Join(' ', Instructions) + "\nAfter:  ["
                 + string.Join(", ", After) + "]";
-        }
-
-        public int[] DoOperation(int i)
-        {
-            var clone = (int[])Before.Clone();
-            switch (i)
-            {
-                case 0:
-                    clone[3] = 123;
-                    break;
-                case 1:
-                    clone[3] = clone[3] & 456;
-                    break;
-                case 2:
-                    clone[3] = clone[3] == 72 ? 1 : 0;
-                    break;
-                case 3:
-                    clone[4] += clone[3];
-                    break;
-                case 4:
-                    clone[4] = 0;
-                    break;
-                case 5:
-                    clone[3] = 0;
-                    break;
-                case 6:
-                    clone[2] = clone[3] | 65536;
-                    break;
-                case 7:
-                    clone[3] = 7637914;
-                    break;
-                case 8:
-                    clone[1] = clone[2] & 255;
-                    break;
-                case 9:
-                    clone[3] += clone[1];
-                    break;
-                case 10:
-                    clone[3] = clone[3] & 16777215;
-                    break;
-                case 11:
-                    clone[3] *= 65899;
-                    break;
-                case 12:
-                    clone[3] = clone[3] & 16777215;
-                    break;
-                case 13:
-                    clone[1] = 256 > clone[2] ? 1 : 0;
-                    break;
-                case 14:
-                    clone[4] += clone[1];
-                    break;
-                case 15:
-                    clone[4]++;
-                    break;
-                case 16:
-                    clone[4] = 27;
-                    break;
-                case 17:
-                    clone[1] = 0;
-                    break;
-                case 18:
-                    clone[5] = clone[1] + 1;
-                    break;
-                case 19:
-                    clone[5] *= 256;
-                    break;
-                case 20:
-                    clone[5] = clone[5] > clone[2] ? 1 : 0;
-                    break;
-                case 21:
-                    clone[4] += clone[5];
-                    break;
-                case 22:
-                    clone[4]++;
-                    break;
-                case 23:
-                    clone[4] = 25;
-                    break;
-                case 24:
-                    clone[1]++;
-                    break;
-                case 25:
-                    clone[4] = 17;
-                    break;
-                case 26:
-                    clone[2] = clone[1];
-                    break;
-                case 27:
-                    clone[4] = 7;
-                    break;
-                case 28:
-                    clone[1] = clone[3] == clone[0] ? 1 : 0;
-                    break;
-                case 29:
-                    clone[4] += clone[1];
-                    break;
-                case 30:
-                    clone[4] = 5;
-                    break;
-            }
-            return clone;
         }
 
     }
